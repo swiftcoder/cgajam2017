@@ -18,15 +18,27 @@ function Block(x, y, w, h) {
     this.y = y;
     this.w = w;
     this.h = h;
+
+    /* move this box by the specified distance */
+    this.offset = function(x, y) {
+        return new Block(this.x+x, this.y+y, this.w, this.h);
+    }
 }
 
+let screenArea = new Block(0, 0, 640, 480);
 let player = new Player();
-let blocks = [new Block(20, 440, 100, 10), new Block(140, 420, 100, 10)];
+let blocks = [];
 
 /* Returns true if two blocks collide, false otherwise */
 function collideBlocks(a, b) {
     return (a.x+a.w >= b.x && a.x <= b.x+b.w &&
             a.y+a.h >= b.y && a.y <= b.y+b.h);
+}
+
+function jump() {
+    if (player.onGround) {
+        player.vy = -25;
+    }
 }
 
 function move() {
@@ -47,9 +59,35 @@ function collide() {
     player.onGround = false;
 }
 
-function jump() {
-    if (player.onGround) {
-        player.vy = -25;
+function randomRange(lo, hi) {
+    return lo + Math.random()*(hi - lo);
+}
+
+function updateBlocks() {
+    let screen = screenArea.offset(player.x - 50, 0);
+
+    // remove blocks which are entirely outside the screen
+    for (var i = blocks.length-1; i >= 0; --i) {
+        let b = blocks[i];
+        if (!collideBlocks(screen, b)) {
+            blocks.splice(i, 1);
+        }
+    }
+
+    // make sure we have at least 10 blocks
+    while (blocks.length < 10) {
+        // always start 20 units after the last block
+        let x = 20;
+        let y = 240;
+        if (blocks.length > 0) {
+            let b = blocks[blocks.length-1];
+            x = b.x + b.w;
+            y = b.y;
+        }
+
+        x += randomRange(10, 30);
+        y += randomRange(-30, 60);
+        blocks.push(new Block(x, y, 100, 10));
     }
 }
 
@@ -69,6 +107,8 @@ function game(p) {
         }
         move();
         collide();
+
+        updateBlocks();
 
         // move everything backwards by the amount the player has moved forwards
         p.translate(-player.x + 50, 0);
