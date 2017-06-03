@@ -33,6 +33,7 @@ let player = new Player();
 let blocks = [];
 let trail = [];
 let spaceBarDown = -10000;
+let tick = 0;
 
 /* Returns true if two blocks collide, false otherwise */
 function collideBlocks(a, b) {
@@ -40,10 +41,11 @@ function collideBlocks(a, b) {
             a.y+a.h >= b.y && a.y <= b.y+b.h);
 }
 
-function jump(tick) {
+function jump() {
     if ((tick - spaceBarDown) < 250 && player.onGround) {
         player.vy = -25;
         spaceBarDown = false;
+        console.log('player_jumped: ' + tick);
     }
 }
 
@@ -57,6 +59,9 @@ function collide() {
     for (var i = 0; i < blocks.length; ++i) {
         let b = blocks[i];
         if (collideBlocks(player, b)) {
+            if (!player.onGround) {
+                console.log('player_landed: ' + tick);
+            }
             player.y = b.y - player.h;
             player.onGround = true;
             return; // leave before resetting the onGround flag to false
@@ -71,6 +76,7 @@ function resetOnDeath() {
         player.y = startY;
         blocks = [];
         trail = [];
+        console.log('player_dead: ' + tick);
     }
 }
 
@@ -123,12 +129,12 @@ function game(p) {
     }
 
     p.draw = function() {
-        let tick = p.millis();
+        tick = p.millis();
 
         p.background('magenta');
         p.noStroke();
 
-        jump(tick);
+        jump();
         move();
         collide();
         resetOnDeath();
