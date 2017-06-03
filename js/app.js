@@ -47760,8 +47760,10 @@ var p5 = require("p5");
 function Player() {
     this.x = 50;
     this.y = 50;
+    this.vy = 0;
     this.w = 5;
     this.h = 5;
+    this.onGround = false;
 }
 
 function Block(x, y, w, h) {
@@ -47776,7 +47778,8 @@ var blocks = [new Block(20, 440, 100, 10), new Block(140, 420, 100, 10)];
 
 function move() {
     player.x += 0.2;
-    player.y += 4;
+    player.y += 4 + player.vy;
+    player.vy *= 0.9;
 }
 
 function collide() {
@@ -47784,7 +47787,16 @@ function collide() {
         var b = blocks[i];
         if (player.x >= b.x && player.x <= b.x + b.w && player.y >= b.y && player.y <= b.y + b.h) {
             player.y = b.y - player.h;
+            player.onGround = true;
+            return; // leave before resetting the onGround flag to false
         }
+    }
+    player.onGround = false;
+}
+
+function jump() {
+    if (player.onGround) {
+        player.vy = -25;
     }
 }
 
@@ -47810,6 +47822,11 @@ function game(p) {
 
         move();
         collide();
+
+        if (p.keyIsDown(32)) {
+            // Space bar
+            jump();
+        }
     };
 }
 
