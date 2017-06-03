@@ -47790,7 +47790,7 @@ function collideBlocks(a, b) {
 
 function jump() {
     if (spaceBarDown && player.onGround) {
-        player.vy = -20;
+        player.vy = -25;
         spaceBarDown = false;
     }
 }
@@ -47811,6 +47811,14 @@ function collide() {
         }
     }
     player.onGround = false;
+}
+
+function resetOnDeath() {
+    if (player.y > screenArea.y + screenArea.h) {
+        player.x = 50;
+        player.y = 50;
+        blocks = [];
+    }
 }
 
 function randomRange(lo, hi) {
@@ -47841,7 +47849,7 @@ function updateBlocks() {
 
         x += randomRange(10, 30);
         y += randomRange(-30, 60);
-        blocks.push(new Block(x, y, 100, 10));
+        blocks.push(new Block(x, y, randomRange(100, 300), 10));
     }
 }
 
@@ -47859,6 +47867,7 @@ function game(p) {
         jump();
         move();
         collide();
+        resetOnDeath();
 
         updateBlocks();
 
