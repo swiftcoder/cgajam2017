@@ -47760,9 +47760,9 @@ var p5 = require("p5");
 function Player() {
     this.x = 50;
     this.y = 50;
-    this.vy = 0;
     this.w = 5;
     this.h = 5;
+    this.vy = 0;
     this.onGround = false;
 }
 
@@ -47776,18 +47776,21 @@ function Block(x, y, w, h) {
 var player = new Player();
 var blocks = [new Block(20, 440, 100, 10), new Block(140, 420, 100, 10)];
 
+/* Returns true if two blocks collide, false otherwise */
+function collideBlocks(a, b) {
+    return a.x + a.w >= b.x && a.x <= b.x + b.w && a.y + a.h >= b.y && a.y <= b.y + b.h;
+}
+
 function move() {
-    player.x += 0.6;
-    player.y += 4 + player.vy;
+    player.x += 2.6;
+    player.y += 8 + player.vy;
     player.vy *= 0.9;
 }
 
 function collide() {
     for (var i = 0; i < blocks.length; ++i) {
         var b = blocks[i];
-        var px = player.x;
-        var py = player.y + player.h;
-        if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
+        if (collideBlocks(player, b)) {
             player.y = b.y - player.h;
             player.onGround = true;
             return; // leave before resetting the onGround flag to false
