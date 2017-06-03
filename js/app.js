@@ -47836,6 +47836,10 @@ function randomRange(lo, hi) {
     return lo + Math.random() * (hi - lo);
 }
 
+function randomIntRange(lo, hi) {
+    return lo + Math.floor(Math.random() * (hi - lo + 1));
+}
+
 function updateBlocks() {
     var screen = screenArea.offset(player.x - startX, 0);
 
@@ -47849,18 +47853,29 @@ function updateBlocks() {
 
     // make sure we have at least 10 blocks
     while (blocks.length < 10) {
-        // always start 20 units after the last block
-        var x = 20;
-        var y = 240;
+        var x = startX - 100;
+        var y = startY + 50;
         if (blocks.length > 0) {
             var _b = blocks[blocks.length - 1];
             x = _b.x + _b.w;
             y = _b.y;
         }
 
-        x += randomRange(20, 50);
-        y += randomRange(-30, 60);
-        blocks.push(new Block(x, y, randomRange(100, 300), 10));
+        var w = randomIntRange(0, 3);
+        if (w < 1 && y > screenArea.y + 150) {
+            // step up
+            x += randomRange(10, 20);
+            y += randomRange(-60, -40);
+        } else if (w < 2 && y < screenArea.y + screenArea.h - 150) {
+            // drop down
+            x += randomRange(90, 130);
+            y += randomRange(40, 60);
+        } else {
+            // flat
+            x += randomRange(80, 120);
+        }
+
+        blocks.push(new Block(x, y, randomRange(125, 250), 10));
     }
 }
 
