@@ -14,7 +14,15 @@ function Player() {
     }
 }
 
+function Block(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+}
+
 let player = new Player();
+let blocks = [new Block(20, 440, 100, 10), new Block(140, 420, 100, 10)];
 
 function game(p) {
 
@@ -31,7 +39,10 @@ function game(p) {
         p.rect(player.x, player.y, 5, 5);
 
         p.fill('black');
-        p.rect(20, 440, 100, 10);
+        for (var i = 0; i < blocks.length; ++i) {
+            let b = blocks[i];
+            p.rect(b.x, b.y, b.w, b.h);
+        }
 
         player.move();
     }
