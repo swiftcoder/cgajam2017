@@ -47760,11 +47760,8 @@ var p5 = require("p5");
 function Player() {
     this.x = 50;
     this.y = 50;
-
-    this.move = function () {
-        player.x += 1;
-        player.y += 1;
-    };
+    this.w = 5;
+    this.h = 5;
 }
 
 function Block(x, y, w, h) {
@@ -47776,6 +47773,20 @@ function Block(x, y, w, h) {
 
 var player = new Player();
 var blocks = [new Block(20, 440, 100, 10), new Block(140, 420, 100, 10)];
+
+function move() {
+    player.x += 0.2;
+    player.y += 4;
+}
+
+function collide() {
+    for (var i = 0; i < blocks.length; ++i) {
+        var b = blocks[i];
+        if (player.x >= b.x && player.x <= b.x + b.w && player.y >= b.y && player.y <= b.y + b.h) {
+            player.y = b.y - player.h;
+        }
+    }
+}
 
 function game(p) {
 
@@ -47797,7 +47808,8 @@ function game(p) {
             p.rect(b.x, b.y, b.w, b.h);
         }
 
-        player.move();
+        move();
+        collide();
     };
 }
 
