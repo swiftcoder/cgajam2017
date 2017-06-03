@@ -47757,9 +47757,12 @@ global.jQuery = require("jQuery");
 var bootstrap = require("bootstrap");
 var p5 = require("p5");
 
+var startX = 150;
+var startY = 50;
+
 function Player() {
-    this.x = 50;
-    this.y = 50;
+    this.x = startX;
+    this.y = startY;
     this.w = 5;
     this.h = 5;
     this.vy = 0;
@@ -47781,6 +47784,7 @@ function Block(x, y, w, h) {
 var screenArea = new Block(0, 0, 640, 480);
 var player = new Player();
 var blocks = [];
+var trail = [];
 var spaceBarDown = -10000;
 
 /* Returns true if two blocks collide, false otherwise */
@@ -47815,9 +47819,10 @@ function collide() {
 
 function resetOnDeath() {
     if (player.y > screenArea.y + screenArea.h) {
-        player.x = 50;
-        player.y = 50;
+        player.x = startX;
+        player.y = startY;
         blocks = [];
+        trail = [];
     }
 }
 
@@ -47826,7 +47831,7 @@ function randomRange(lo, hi) {
 }
 
 function updateBlocks() {
-    var screen = screenArea.offset(player.x - 50, 0);
+    var screen = screenArea.offset(player.x - startX, 0);
 
     // remove blocks which are entirely outside the screen
     for (var i = blocks.length - 1; i >= 0; --i) {
@@ -47853,6 +47858,15 @@ function updateBlocks() {
     }
 }
 
+function doTrail() {
+    trail.push(new Block(player.x, player.y, 1, 1));
+
+    // remove old particles
+    if (trail.length > 100) {
+        trail = trail.splice(trail.length - 100, 100);
+    }
+}
+
 function game(p) {
 
     p.setup = function () {
@@ -47872,9 +47886,10 @@ function game(p) {
         resetOnDeath();
 
         updateBlocks();
+        doTrail();
 
         // move everything backwards by the amount the player has moved forwards
-        p.translate(-player.x + 50, 0);
+        p.translate(-player.x + startX, 0);
 
         p.fill('cyan');
         p.rect(player.x, player.y, 5, 5);
@@ -47883,6 +47898,12 @@ function game(p) {
         for (var i = 0; i < blocks.length; ++i) {
             var b = blocks[i];
             p.rect(b.x, b.y, b.w, b.h);
+        }
+
+        p.fill('white');
+        for (var i = 0; i < trail.length; ++i) {
+            var _b2 = trail[i];
+            p.rect(_b2.x, _b2.y, _b2.w, _b2.h);
         }
     };
 
