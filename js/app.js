@@ -47804,12 +47804,22 @@ function game(p) {
 
     p.setup = function () {
         p.createCanvas(640, 480);
+        p.frameRate(30);
     };
 
     p.draw = function () {
         p.background('magenta');
-
         p.noStroke();
+
+        if (p.keyIsDown(32)) {
+            // Space bar
+            jump();
+        }
+        move();
+        collide();
+
+        // move everything backwards by the amount the player has moved forwards
+        p.translate(-player.x + 50, 0);
 
         p.fill('cyan');
         p.rect(player.x, player.y, 5, 5);
@@ -47818,14 +47828,6 @@ function game(p) {
         for (var i = 0; i < blocks.length; ++i) {
             var b = blocks[i];
             p.rect(b.x, b.y, b.w, b.h);
-        }
-
-        move();
-        collide();
-
-        if (p.keyIsDown(32)) {
-            // Space bar
-            jump();
         }
     };
 }
