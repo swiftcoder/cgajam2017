@@ -47777,7 +47777,7 @@ var player = new Player();
 var blocks = [new Block(20, 440, 100, 10), new Block(140, 420, 100, 10)];
 
 function move() {
-    player.x += 0.2;
+    player.x += 0.6;
     player.y += 4 + player.vy;
     player.vy *= 0.9;
 }
@@ -47785,7 +47785,9 @@ function move() {
 function collide() {
     for (var i = 0; i < blocks.length; ++i) {
         var b = blocks[i];
-        if (player.x >= b.x && player.x <= b.x + b.w && player.y >= b.y && player.y <= b.y + b.h) {
+        var px = player.x;
+        var py = player.y + player.h;
+        if (px >= b.x && px <= b.x + b.w && py >= b.y && py <= b.y + b.h) {
             player.y = b.y - player.h;
             player.onGround = true;
             return; // leave before resetting the onGround flag to false
