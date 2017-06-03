@@ -47757,17 +47757,14 @@ global.jQuery = require("jQuery");
 var bootstrap = require("bootstrap");
 var p5 = require("p5");
 
-var message = "hello world!";
-console.log(message);
-
 function Player() {
     this.x = 50;
     this.y = 50;
-}
 
-function move() {
-    player.x += 1;
-    player.y += 1;
+    this.move = function () {
+        player.x += 1;
+        player.y += 1;
+    };
 }
 
 var player = new Player();
@@ -47789,7 +47786,7 @@ function game(p) {
         p.fill('black');
         p.rect(20, 440, 100, 10);
 
-        move();
+        player.move();
     };
 }
 
