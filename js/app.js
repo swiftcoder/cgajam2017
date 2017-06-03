@@ -47781,6 +47781,7 @@ function Block(x, y, w, h) {
 var screenArea = new Block(0, 0, 640, 480);
 var player = new Player();
 var blocks = [];
+var spaceBarDown = false;
 
 /* Returns true if two blocks collide, false otherwise */
 function collideBlocks(a, b) {
@@ -47788,14 +47789,15 @@ function collideBlocks(a, b) {
 }
 
 function jump() {
-    if (player.onGround) {
-        player.vy = -25;
+    if (spaceBarDown && player.onGround) {
+        player.vy = -20;
+        spaceBarDown = false;
     }
 }
 
 function move() {
-    player.x += 2.6;
-    player.y += 8 + player.vy;
+    player.x += 6.0;
+    player.y += 10 + player.vy;
     player.vy *= 0.9;
 }
 
@@ -47854,10 +47856,7 @@ function game(p) {
         p.background('magenta');
         p.noStroke();
 
-        if (p.keyIsDown(32)) {
-            // Space bar
-            jump();
-        }
+        jump();
         move();
         collide();
 
@@ -47873,6 +47872,13 @@ function game(p) {
         for (var i = 0; i < blocks.length; ++i) {
             var b = blocks[i];
             p.rect(b.x, b.y, b.w, b.h);
+        }
+    };
+
+    p.keyPressed = function () {
+        if (p.keyCode == 32) {
+            // spacebar
+            spaceBarDown = true;
         }
     };
 }
