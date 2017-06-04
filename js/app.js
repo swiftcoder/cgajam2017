@@ -47793,6 +47793,7 @@ function Generator(bpm, beats_per_bar, beats_per_note) {
     };
 }
 
+var background = void 0;
 var screenArea = new Block(0, 0, 640, 480);
 var player = new Player();
 var blocks = [];
@@ -47923,12 +47924,14 @@ function game(p) {
     p.setup = function () {
         p.createCanvas(640, 480);
         p.frameRate(30);
+        background = p.loadImage("art/background-20dithering.png");
     };
 
     p.draw = function () {
         tick = p.millis();
 
         p.background('magenta');
+        p.image(background, -player.x / 2 % (background.width / 2), 0);
         p.noStroke();
 
         simulate();
