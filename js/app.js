@@ -57115,26 +57115,27 @@ function main(p) {
     var s = void 0;
 
     p.preload = function () {
-        s = p.loadSound('../art/funner_runner.ogg');
+        // s = p.loadSound('../art/funner_runner.ogg');
     };
 
     p.setup = function () {
         noise = new p5.Noise('brown');
-        noise.amp(0.2);
-        noise.start();
+        // noise.amp(0.2);
+        // noise.start();
         flt = new p5.BandPass();
         // set the BandPass frequency based on mouseX
         flt.freq(1000);
         // give the flt a narrow band (lower res = wider bandpass)
         flt.res(1000);
 
-        s.rate(1);
-        s.loop();
+        // s.rate(1);
+        // s.loop();
+        //
+        // console.log(s)
 
-        console.log(s);
 
         p.createCanvas(640, 480);
-        p.frameRate(60);
+        p.frameRate(30);
 
         intro = new _intro.Intro(p, function () {
             current = menu;
@@ -57159,7 +57160,7 @@ function main(p) {
 new p5(main);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./game":18,"bootstrap":1,"jQuery":14,"p5":16,"p5/lib/addons/p5.sound":15}],18:[function(require,module,exports){
+},{"./game":18,"./intro":19,"./menu":20,"bootstrap":1,"jQuery":14,"p5":16,"p5/lib/addons/p5.sound":15}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57167,7 +57168,8 @@ Object.defineProperty(exports, "__esModule", {
 });
 var startX = 150;
 var startY = 150;
-var speed = 2.5;
+var bmp = 130;
+var speed = 1.5;
 var gravity = 1.0;
 var jumpVelocity = -17;
 
@@ -57211,7 +57213,7 @@ var trail = [];
 var spaceBarDown = -10000;
 var tick = 0;
 
-var generator = new Generator(130, 3, 8);
+var generator = new Generator(bmp, 3, 8);
 
 /* Returns true if two blocks collide, false otherwise */
 function collideBlocks(a, b) {
@@ -57222,11 +57224,25 @@ function onGround() {
     return tick - player.onGround < 50;
 }
 
+function gravityInverter() {
+    gravity = -1 * gravity;
+}
+
 function jump() {
     if (tick - spaceBarDown < 250 && onGround()) {
-        player.vy = jumpVelocity;
+        if (gravity < 0) {
+            player.vy = -2 * jumpVelocity;
+        } else {
+            player.vy = 1.3 * jumpVelocity;
+        }
         spaceBarDown = -10000;
         console.log('player_jumped: ' + tick);
+    } else {
+        if (tick - spaceBarDown < 250) {
+            player.vy = jumpVelocity / 2;
+            spaceBarDown = -10000;
+            console.log('player_jumped: ' + tick);
+        }
     }
 }
 
@@ -57235,8 +57251,16 @@ function move() {
     if (!onGround() || player.vy < 0) {
         player.vy += gravity;
         player.y += player.vy;
+        if (player.x % bmp == 0) {
+            gravity = gravity * (2 * randomRange(-1, 1));
+            console.log(tick, gravity);
+        }
+        if (player.x % 64 == 0) {
+            gravity = 1;
+        }
     }
-    player.vy *= 0.9;
+
+    player.vy *= 0.6;
 }
 
 function collide() {
@@ -57311,6 +57335,8 @@ function updateBlocks() {
         prevW = lastW;
         lastW = w;
 
+        console.log("w,", w, "lastW", lastW);
+
         if (w == 1) {
             // step up
             for (var _i = 0; _i < generator.measure_length; ++_i) {
@@ -57323,6 +57349,7 @@ function updateBlocks() {
             // drop down
             for (var _i2 = 0; _i2 < generator.measure_length; ++_i2) {
                 var _gap = generator.beatLength() / 2;
+                console.log("gap");
                 blocks.push(new Block(x + _gap, y, generator.beatLength() - _gap, 10));
                 x += generator.beatLength();
                 y += 50;
@@ -57342,7 +57369,7 @@ function doTrail() {
     trail.push(new Block(player.x, player.y, 1, 1));
 
     // remove old particles
-    if (trail.length > 100) {
+    if (trail.length > 200) {
         trail = trail.splice(trail.length - 100, 100);
     }
 }
@@ -57373,6 +57400,10 @@ var Game = exports.Game = function Game(p) {
         p.stroke('#ffffff');
         p.strokeWeight(1);
 
+        p.textSize(32);
+        p.text(gravity, 10, 30);
+        p.fill(0, 102, 153);
+
         simulate();
 
         // move everything backwards by the amount the player has moved forwards
@@ -57399,7 +57430,223 @@ var Game = exports.Game = function Game(p) {
             // spacebar
             spaceBarDown = p.millis();
         }
+        if (p.keyCode == 93) {
+            gravityInverter();
+        }
     };
 };
+
+},{}],19:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var Intro = exports.Intro = function Intro(p, go) {
+
+    var frame1 = p.loadImage("art/mainscreenCGA2-1.png");
+    var frame2 = p.loadImage("art/mainscreenCGA2-2.png");
+
+    var frame = frame1;
+
+    var count = 0;
+
+    this.draw = function () {
+        p.image(frame, 0, 0);
+
+        if (++count > 120) {
+            count = 0;
+            frame = frame === frame1 ? frame2 : frame1;
+        }
+    };
+
+    this.keyPressed = function () {
+        go();
+    };
+};
+
+},{}],20:[function(require,module,exports){
+(function (global){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Menu = undefined;
+
+var _menuItem = require("./menuItem");
+
+global.jQuery = require("jQuery");
+var bootstrap = require("bootstrap");
+var p5 = require("p5");
+
+
+var height = 480;
+var width = 640;
+var selectText = 96;
+var blockWidth = width / 3;
+var blockHeight = height / 3 - selectText / 3;
+var select = 0;
+
+var Menu = exports.Menu = function Menu(p, go) {
+    var menuItems = [[], [], []];
+
+    for (var i = 0; i < 3; i++) {
+        menuItems[0].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 0, blockWidth, blockHeight, i, p));
+        menuItems[1].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 1, blockWidth, blockHeight, i + 3, p));
+        menuItems[2].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 2, blockWidth, blockHeight, i + 6, p));
+    }
+
+    this.draw = function () {
+        p.loadImage("../images/choosecharacter.png", function (img) {
+            p.image(img, 0, 0);
+        });
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = menuItems[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var row = _step.value;
+                var _iteratorNormalCompletion2 = true;
+                var _didIteratorError2 = false;
+                var _iteratorError2 = undefined;
+
+                try {
+                    for (var _iterator2 = row[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                        var item = _step2.value;
+
+                        item.display();
+                    }
+                } catch (err) {
+                    _didIteratorError2 = true;
+                    _iteratorError2 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                            _iterator2.return();
+                        }
+                    } finally {
+                        if (_didIteratorError2) {
+                            throw _iteratorError2;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+    };
+
+    this.keyPressed = function () {
+        if (p.keyCode === 32) {
+            go();
+            return;
+        }
+
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
+
+        try {
+            for (var _iterator3 = menuItems[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                var row = _step3.value;
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
+
+                try {
+                    for (var _iterator4 = row[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                        var item = _step4.value;
+
+                        if (item.id === select) {
+                            item.highlight();
+                        } else {
+                            item.unHighlight();
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError4 = true;
+                    _iteratorError4 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                            _iterator4.return();
+                        }
+                    } finally {
+                        if (_didIteratorError4) {
+                            throw _iteratorError4;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                    _iterator3.return();
+                }
+            } finally {
+                if (_didIteratorError3) {
+                    throw _iteratorError3;
+                }
+            }
+        }
+
+        if (select < 8) {
+            select += 1;
+        } else {
+            select = 0;
+        }
+    };
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./menuItem":21,"bootstrap":1,"jQuery":14,"p5":16}],21:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.MenuItem = MenuItem;
+function MenuItem(x, y, width, height, id, p) {
+    var _this = this;
+
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.id = id;
+
+    this.stroke = "#AA00AA";
+
+    this.display = function () {
+        p.fill("rgba(0, 0, 0 ,0.0)");
+        p.stroke(_this.stroke);
+        p.strokeWeight(5);
+        p.rect(_this.x, _this.y, _this.width, _this.height);
+    };
+
+    this.highlight = function () {
+        _this.stroke = "white";
+    };
+
+    this.unHighlight = function () {
+        _this.stroke = "#AA00AA";
+    };
+}
 
 },{}]},{},[17]);

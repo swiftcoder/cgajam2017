@@ -2,8 +2,9 @@
 
 const startX = 150;
 const startY = 150;
-const speed = 2.5;
-const gravity = 1.0;
+const bmp = 130
+const speed = 1.5;
+let gravity = 1.0;
 const jumpVelocity = -17;
 
 function Player() {
@@ -29,7 +30,7 @@ function Block(x, y, w, h) {
 
 function Generator(bpm, beats_per_bar, beats_per_note) {
     let beats_per_minute = bpm * beats_per_bar / beats_per_note;
-    this.frames_per_beat = 30*60 / beats_per_minute;
+    this.frames_per_beat = 30 * 60 / beats_per_minute;
     this.measure_length = beats_per_bar
     console.log("frames per beat: " + this.frames_per_beat + " measure length: " + this.measure_length);
 
@@ -46,7 +47,7 @@ let trail = [];
 let spaceBarDown = -10000;
 let tick = 0;
 
-let generator = new Generator(130, 3, 8);
+let generator = new Generator(bmp, 3, 8);
 
 /* Returns true if two blocks collide, false otherwise */
 function collideBlocks(a, b) {
@@ -58,11 +59,27 @@ function onGround() {
     return (tick - player.onGround) < 50;
 }
 
+function gravityInverter(){
+  gravity = -1 * gravity
+}
+
 function jump() {
     if ((tick - spaceBarDown) < 250 && onGround()) {
-        player.vy = jumpVelocity;
+        if (gravity < 0){
+            player.vy = - 2 * jumpVelocity;
+        }
+        else{
+            player.vy = 1.3 * jumpVelocity;
+        }
         spaceBarDown = -10000;
         console.log('player_jumped: ' + tick);
+    }
+    else {
+      if ((tick - spaceBarDown) < 250) {
+        player.vy = jumpVelocity / 2;
+        spaceBarDown = -10000;
+        console.log('player_jumped: ' + tick);
+      }
     }
 }
 
@@ -71,8 +88,16 @@ function move() {
     if (!onGround() || player.vy < 0) {
         player.vy += gravity;
         player.y += player.vy;
+        if (player.x % bmp == 0) {
+          gravity = gravity * (2 * randomRange(-1, 1))
+          console.log(tick, gravity)
+        }
+        if (player.x % 64 == 0) {
+          gravity = 1
+        }
     }
-    player.vy *= 0.9;
+
+    player.vy *= 0.6;
 }
 
 function collide() {
@@ -147,6 +172,8 @@ function updateBlocks() {
         prevW = lastW;
         lastW = w;
 
+        console.log("w," , w, "lastW", lastW)
+
         if (w == 1) { // step up
             for (let i = 0; i < generator.measure_length; ++i) {
                 let gap = generator.beatLength()/4;
@@ -157,6 +184,7 @@ function updateBlocks() {
         } else if (w == -1) { // drop down
             for (let i = 0; i < generator.measure_length; ++i) {
                 let gap = generator.beatLength()/2;
+                console.log("gap")
                 blocks.push(new Block(x+gap, y, generator.beatLength() - gap, 10));
                 x += generator.beatLength();
                 y += 50;
@@ -168,6 +196,8 @@ function updateBlocks() {
                 x += generator.beatLength();
             }
         }
+
+
     }
 }
 
@@ -175,7 +205,7 @@ function doTrail() {
     trail.push(new Block(player.x, player.y, 1, 1));
 
     // remove old particles
-    if (trail.length > 100) {
+    if (trail.length > 200) {
         trail = trail.splice(trail.length - 100, 100);
     }
 }
@@ -207,6 +237,10 @@ export const Game = function(p) {
         p.stroke('#ffffff');
         p.strokeWeight(1);
 
+        p.textSize(32);
+        p.text(gravity, 10, 30);
+        p.fill(0, 102, 153);
+
         simulate();
 
         // move everything backwards by the amount the player has moved forwards
@@ -231,6 +265,9 @@ export const Game = function(p) {
     this.keyPressed = function() {
         if (p.keyCode == 32) { // spacebar
             spaceBarDown = p.millis();
+        }
+        if (p.keyCode == 93) {
+          gravityInverter()
         }
     };
 }

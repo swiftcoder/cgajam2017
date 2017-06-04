@@ -25,27 +25,27 @@ function main(p) {
     let s;
 
     p.preload = function() {
-      s = p.loadSound('../art/funner_runner.ogg');
+      // s = p.loadSound('../art/funner_runner.ogg');
     }
 
     p.setup = function() {
         noise = new p5.Noise('brown');
-        noise.amp(0.2);
-        noise.start();
+        // noise.amp(0.2);
+        // noise.start();
         flt = new p5.BandPass();
         // set the BandPass frequency based on mouseX
          flt.freq(1000);
          // give the flt a narrow band (lower res = wider bandpass)
          flt.res(1000);
 
-        s.rate(1);
-        s.loop();
-
-        console.log(s)
+        // s.rate(1);
+        // s.loop();
+        //
+        // console.log(s)
 
 
         p.createCanvas(640, 480);
-        p.frameRate(60);
+        p.frameRate(30);
 
         intro = new Intro(p, () => {current = menu;});
         menu = new Menu(p, () => {current = game;});
