@@ -6,6 +6,6 @@
 
 ### credits:
 - Programming: [Tristam Macdonald](https://github.com/swiftcoder/) & [Leo Langinger](https://github.com/llanginger)
-- Music: [Roie Schwaber-Cohen](https://github.com/roieki)
+- Music: [Roie Schwaber-Cohen](https://github.com/roieki), original by [Muse](https://www.youtube.com/watch?v=wQXit0vly2I) 
 - Sound Design: [Eric Ogden](https://github.com/parties)
 - GFX: [Michael Hazani](https://github.com/MichaelHazani/)
