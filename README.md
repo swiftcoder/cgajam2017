@@ -1,7 +1,7 @@
 # cgajam2017
 #cgajam 2017
 
-![alt](https://github.com/swiftcoder/cgajam2017/blob/art/art/mainscreenCGA2-1.png)
+![alt](https://raw.githubusercontent.com/swiftcoder/cgajam2017/master/art/BassJumper.gif)
 
 
 ### credits:
