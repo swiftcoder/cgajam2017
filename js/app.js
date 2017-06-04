@@ -47751,7 +47751,9 @@ module.exports = {
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],16:[function(require,module,exports){
 (function (global){
-'use strict';
+"use strict";
+
+var _menu = require("./menu");
 
 var _game = require("./game");
 
@@ -47759,6 +47761,7 @@ global.jQuery = require("jQuery");
 var bootstrap = require("bootstrap");
 var p5 = require("p5");
 
+var menu = void 0;
 var game = void 0;
 var current = void 0;
 
@@ -47770,8 +47773,12 @@ function main(p) {
         p.createCanvas(640, 480);
         p.frameRate(60);
 
+        menu = new _menu.Menu(p, function () {
+            current = game;
+        });
         game = new _game.Game(p);
-        current = game;
+
+        current = menu;
     };
 
     p.draw = function () {
@@ -47786,7 +47793,7 @@ function main(p) {
 new p5(main);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./game":17,"bootstrap":1,"jQuery":14,"p5":15}],17:[function(require,module,exports){
+},{"./game":17,"./menu":18,"bootstrap":1,"jQuery":14,"p5":15}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -47988,7 +47995,7 @@ var Game = exports.Game = function Game(p) {
 
     background = p.loadImage("art/backgroundCGA2.png");
 
-    p.draw = function () {
+    this.draw = function () {
         tick = p.millis();
 
         p.background('#55ffff');
@@ -48016,12 +48023,196 @@ var Game = exports.Game = function Game(p) {
         }
     };
 
-    p.keyPressed = function () {
+    this.keyPressed = function () {
         if (p.keyCode == 32) {
             // spacebar
             spaceBarDown = p.millis();
         }
     };
 };
+
+},{}],18:[function(require,module,exports){
+(function (global){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Menu = undefined;
+
+var _menuItem = require("./menuItem");
+
+global.jQuery = require("jQuery");
+var bootstrap = require("bootstrap");
+var p5 = require("p5");
+
+
+var height = 480;
+var width = 640;
+var selectText = 96;
+var blockWidth = width / 3;
+var blockHeight = height / 3 - selectText / 3;
+var select = 0;
+
+var Menu = exports.Menu = function Menu(p, go) {
+    var menuItems = [[], [], []];
+
+    for (var i = 0; i < 3; i++) {
+        menuItems[0].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 0, blockWidth, blockHeight, i, p));
+        menuItems[1].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 1, blockWidth, blockHeight, i + 3, p));
+        menuItems[2].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 2, blockWidth, blockHeight, i + 6, p));
+    }
+
+    this.draw = function () {
+        p.loadImage("../images/choosecharacter.png", function (img) {
+            p.image(img, 0, 0);
+        });
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = menuItems[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var row = _step.value;
+                var _iteratorNormalCompletion2 = true;
+                var _didIteratorError2 = false;
+                var _iteratorError2 = undefined;
+
+                try {
+                    for (var _iterator2 = row[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                        var item = _step2.value;
+
+                        item.display();
+                    }
+                } catch (err) {
+                    _didIteratorError2 = true;
+                    _iteratorError2 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                            _iterator2.return();
+                        }
+                    } finally {
+                        if (_didIteratorError2) {
+                            throw _iteratorError2;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+    };
+
+    this.keyPressed = function () {
+        if (p.keyCode === 32) {
+            go();
+            return;
+        }
+
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
+
+        try {
+            for (var _iterator3 = menuItems[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                var row = _step3.value;
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
+
+                try {
+                    for (var _iterator4 = row[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                        var item = _step4.value;
+
+                        if (item.id === select) {
+                            item.highlight();
+                        } else {
+                            item.unHighlight();
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError4 = true;
+                    _iteratorError4 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                            _iterator4.return();
+                        }
+                    } finally {
+                        if (_didIteratorError4) {
+                            throw _iteratorError4;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                    _iterator3.return();
+                }
+            } finally {
+                if (_didIteratorError3) {
+                    throw _iteratorError3;
+                }
+            }
+        }
+
+        if (select < 8) {
+            select += 1;
+        } else {
+            select = 0;
+        }
+    };
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./menuItem":19,"bootstrap":1,"jQuery":14,"p5":15}],19:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.MenuItem = MenuItem;
+function MenuItem(x, y, width, height, id, p) {
+    var _this = this;
+
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.id = id;
+
+    this.stroke = "#AA00AA";
+
+    this.display = function () {
+        p.fill("rgba(0, 0, 0 ,0.0)");
+        p.stroke(_this.stroke);
+        p.strokeWeight(5);
+        p.rect(_this.x, _this.y, _this.width, _this.height);
+    };
+
+    this.highlight = function () {
+        _this.stroke = "white";
+    };
+
+    this.unHighlight = function () {
+        _this.stroke = "#AA00AA";
+    };
+}
 
 },{}]},{},[16]);

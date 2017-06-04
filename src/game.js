@@ -194,7 +194,7 @@ export const Game = function(p) {
 
     background = p.loadImage("art/backgroundCGA2.png");
 
-    p.draw = function() {
+    this.draw = function() {
         tick = p.millis();
 
         p.background('#55ffff');
@@ -222,7 +222,7 @@ export const Game = function(p) {
         }
     };
 
-    p.keyPressed = function() {
+    this.keyPressed = function() {
         if (p.keyCode == 32) { // spacebar
             spaceBarDown = p.millis();
         }
