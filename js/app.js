@@ -57115,7 +57115,7 @@ function main(p) {
     var s = void 0;
 
     p.preload = function () {
-        // s = p.loadSound('../art/funner_runner.ogg');
+        music = p.loadSound('../art/funner_runner.ogg');
     };
 
     p.setup = function () {
@@ -57258,7 +57258,7 @@ function move() {
         if (player.x % 64 == 0) {
             gravity = 1;
         }
-    }
+    } else {}
 
     player.vy *= 0.6;
 }

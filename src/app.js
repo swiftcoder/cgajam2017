@@ -25,7 +25,7 @@ function main(p) {
     let s;
 
     p.preload = function() {
-      // s = p.loadSound('../art/funner_runner.ogg');
+      music = p.loadSound('../art/funner_runner.ogg');
     }
 
     p.setup = function() {

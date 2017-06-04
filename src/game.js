@@ -96,6 +96,9 @@ function move() {
           gravity = 1
         }
     }
+    else {
+      
+    }
 
     player.vy *= 0.6;
 }
