@@ -48007,6 +48007,7 @@ var Game = exports.Game = function Game(p) {
         p.background('#55ffff');
         p.image(background, Math.floor(-player.x / 2 % (background.width / 2)), 0);
         p.stroke('#ffffff');
+        p.strokeWeight(1);
 
         simulate();
 
