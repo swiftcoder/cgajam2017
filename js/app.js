@@ -47753,6 +47753,8 @@ module.exports = {
 (function (global){
 "use strict";
 
+var _intro = require("./intro");
+
 var _menu = require("./menu");
 
 var _game = require("./game");
@@ -47761,6 +47763,7 @@ global.jQuery = require("jQuery");
 var bootstrap = require("bootstrap");
 var p5 = require("p5");
 
+var intro = void 0;
 var menu = void 0;
 var game = void 0;
 var current = void 0;
@@ -47773,12 +47776,15 @@ function main(p) {
         p.createCanvas(640, 480);
         p.frameRate(60);
 
+        intro = new _intro.Intro(p, function () {
+            current = menu;
+        });
         menu = new _menu.Menu(p, function () {
             current = game;
         });
         game = new _game.Game(p);
 
-        current = menu;
+        current = intro;
     };
 
     p.draw = function () {
@@ -47793,7 +47799,7 @@ function main(p) {
 new p5(main);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./game":17,"./menu":18,"bootstrap":1,"jQuery":14,"p5":15}],17:[function(require,module,exports){
+},{"./game":17,"./intro":18,"./menu":19,"bootstrap":1,"jQuery":14,"p5":15}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -48032,6 +48038,35 @@ var Game = exports.Game = function Game(p) {
 };
 
 },{}],18:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var Intro = exports.Intro = function Intro(p, go) {
+
+    var frame1 = p.loadImage("art/mainscreenCGA2-1.png");
+    var frame2 = p.loadImage("art/mainscreenCGA2-2.png");
+
+    var frame = frame1;
+
+    var count = 0;
+
+    this.draw = function () {
+        p.image(frame, 0, 0);
+
+        if (++count > 120) {
+            count = 0;
+            frame = frame === frame1 ? frame2 : frame1;
+        }
+    };
+
+    this.keyPressed = function () {
+        go();
+    };
+};
+
+},{}],19:[function(require,module,exports){
 (function (global){
 "use strict";
 
@@ -48181,7 +48216,7 @@ var Menu = exports.Menu = function Menu(p, go) {
 };
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./menuItem":19,"bootstrap":1,"jQuery":14,"p5":15}],19:[function(require,module,exports){
+},{"./menuItem":20,"bootstrap":1,"jQuery":14,"p5":15}],20:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
