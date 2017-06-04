@@ -199,12 +199,13 @@ export const Game = function(p) {
 
     background = p.loadImage("art/backgroundCGA2.png");
 
-    p.draw = function() {
+    this.draw = function() {
         tick = p.millis();
 
         p.background('#55ffff');
         p.image(background, Math.floor(-player.x/2 % (background.width / 2)), 0);
         p.stroke('#ffffff');
+        p.strokeWeight(1);
 
         simulate();
 
@@ -227,7 +228,7 @@ export const Game = function(p) {
         }
     };
 
-    p.keyPressed = function() {
+    this.keyPressed = function() {
         if (p.keyCode == 32) { // spacebar
             spaceBarDown = p.millis();
         }

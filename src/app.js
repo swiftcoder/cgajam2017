@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 global.jQuery = require("jQuery");
 const bootstrap = require("bootstrap");
@@ -8,8 +8,12 @@ const sound = require("p5/lib/addons/p5.sound")
 
 
 
+import {Intro} from "./intro";
+import {Menu} from "./menu";
 import {Game} from "./game";
 
+let intro;
+let menu;
 let game;
 let current;
 let noise;
@@ -43,8 +47,11 @@ function main(p) {
         p.createCanvas(640, 480);
         p.frameRate(60);
 
+        intro = new Intro(p, () => {current = menu;});
+        menu = new Menu(p, () => {current = game;});
         game = new Game(p);
-        current = game;
+
+        current = intro;
     }
 
     p.draw = function() {

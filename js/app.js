@@ -57089,7 +57089,11 @@ module.exports = {
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],17:[function(require,module,exports){
 (function (global){
-'use strict';
+"use strict";
+
+var _intro = require("./intro");
+
+var _menu = require("./menu");
 
 var _game = require("./game");
 
@@ -57098,6 +57102,8 @@ var bootstrap = require("bootstrap");
 var p5 = require("p5");
 var sound = require("p5/lib/addons/p5.sound");
 
+var intro = void 0;
+var menu = void 0;
 var game = void 0;
 var current = void 0;
 var noise = void 0;
@@ -57130,8 +57136,15 @@ function main(p) {
         p.createCanvas(640, 480);
         p.frameRate(60);
 
+        intro = new _intro.Intro(p, function () {
+            current = menu;
+        });
+        menu = new _menu.Menu(p, function () {
+            current = game;
+        });
         game = new _game.Game(p);
-        current = game;
+
+        current = intro;
     };
 
     p.draw = function () {
@@ -57352,12 +57365,13 @@ var Game = exports.Game = function Game(p) {
 
     background = p.loadImage("art/backgroundCGA2.png");
 
-    p.draw = function () {
+    this.draw = function () {
         tick = p.millis();
 
         p.background('#55ffff');
         p.image(background, Math.floor(-player.x / 2 % (background.width / 2)), 0);
         p.stroke('#ffffff');
+        p.strokeWeight(1);
 
         simulate();
 
@@ -57380,7 +57394,7 @@ var Game = exports.Game = function Game(p) {
         }
     };
 
-    p.keyPressed = function () {
+    this.keyPressed = function () {
         if (p.keyCode == 32) {
             // spacebar
             spaceBarDown = p.millis();
