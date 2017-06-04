@@ -13,7 +13,7 @@ function Player() {
     this.w = 5;
     this.h = 5;
     this.vy = 0;
-    this.onGround = false;
+    this.onGround = -10000;
 }
 
 function Block(x, y, w, h) {
@@ -41,8 +41,12 @@ function collideBlocks(a, b) {
             a.y+a.h >= b.y && a.y <= b.y+b.h);
 }
 
+function onGround() {
+    return (tick - player.onGround) < 100;
+}
+
 function jump() {
-    if ((tick - spaceBarDown) < 250 && player.onGround) {
+    if ((tick - spaceBarDown) < 250 && onGround()) {
         player.vy = -25;
         spaceBarDown = false;
         console.log('player_jumped: ' + tick);
@@ -51,7 +55,9 @@ function jump() {
 
 function move() {
     player.x += 6.0;
-    player.y += 10 + player.vy;
+    if (!onGround() || player.vy < 0) {
+        player.y += 10 + player.vy;
+    }
     player.vy *= 0.9;
 }
 
@@ -59,15 +65,15 @@ function collide() {
     for (var i = 0; i < blocks.length; ++i) {
         let b = blocks[i];
         if (collideBlocks(player, b)) {
-            if (!player.onGround) {
+            if (!onGround()) {
+                player.vy = 0;
                 console.log('player_landed: ' + tick);
             }
             player.y = b.y - player.h;
-            player.onGround = true;
-            return; // leave before resetting the onGround flag to false
+            player.onGround = tick;
+            break;
         }
     }
-    player.onGround = false;
 }
 
 function resetOnDeath() {
@@ -117,10 +123,10 @@ function updateBlocks() {
             x += randomRange(90, 130);
             y += randomRange(40, 60);
         } else { // flat
-            x += randomRange(80, 120);
+            x += randomRange(80, 100);
         }
 
-        blocks.push(new Block(x, y, randomRange(125, 250), 10));
+        blocks.push(new Block(x, y, randomRange(75, 250), 10));
     }
 }
 
@@ -131,6 +137,16 @@ function doTrail() {
     if (trail.length > 100) {
         trail = trail.splice(trail.length - 100, 100);
     }
+}
+
+function simulate() {
+    jump();
+    move();
+    collide();
+    resetOnDeath();
+
+    updateBlocks();
+    doTrail();
 }
 
 function game(p) {
@@ -146,13 +162,7 @@ function game(p) {
         p.background('magenta');
         p.noStroke();
 
-        jump();
-        move();
-        collide();
-        resetOnDeath();
-
-        updateBlocks();
-        doTrail();
+        simulate();
 
         // move everything backwards by the amount the player has moved forwards
         p.translate(-player.x + startX, 0);
