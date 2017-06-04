@@ -191,6 +191,11 @@ function simulate() {
 }
 
 export const Game = function(p) {
+    // p.loadSound('../art/funner_runner.ogg')
+    // p.start()
+
+    console.log(p)
+
 
     background = p.loadImage("art/backgroundCGA2.png");
 
