@@ -47759,6 +47759,7 @@ var p5 = require("p5");
 
 var startX = 150;
 var startY = 50;
+var speed = 6.0;
 
 function Player() {
     this.x = startX;
@@ -47781,12 +47782,25 @@ function Block(x, y, w, h) {
     };
 }
 
+function Generator(bpm, beats_per_bar, beats_per_note) {
+    var beats_per_minute = bpm * beats_per_bar / beats_per_note;
+    this.frames_per_beat = 30 * 60 / beats_per_minute;
+    this.measure_length = beats_per_bar;
+    console.log("frames per beat: " + this.frames_per_beat + " measure length: " + this.measure_length);
+
+    this.blockLength = function () {
+        return this.frames_per_beat * speed;
+    };
+}
+
 var screenArea = new Block(0, 0, 640, 480);
 var player = new Player();
 var blocks = [];
 var trail = [];
 var spaceBarDown = -10000;
 var tick = 0;
+
+var generator = new Generator(120, 3, 4);
 
 /* Returns true if two blocks collide, false otherwise */
 function collideBlocks(a, b) {
@@ -47800,13 +47814,13 @@ function onGround() {
 function jump() {
     if (tick - spaceBarDown < 250 && onGround()) {
         player.vy = -25;
-        spaceBarDown = false;
+        spaceBarDown = -10000;
         console.log('player_jumped: ' + tick);
     }
 }
 
 function move() {
-    player.x += 6.0;
+    player.x += speed;
     if (!onGround() || player.vy < 0) {
         player.y += 10 + player.vy;
     }
@@ -47881,7 +47895,7 @@ function updateBlocks() {
             x += randomRange(80, 100);
         }
 
-        blocks.push(new Block(x, y, randomRange(75, 250), 10));
+        blocks.push(new Block(x, y, generator.blockLength(), 10));
     }
 }
 
