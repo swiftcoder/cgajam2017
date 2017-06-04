@@ -47753,10 +47753,45 @@ module.exports = {
 (function (global){
 'use strict';
 
+var _game = require("./game");
+
 global.jQuery = require("jQuery");
 var bootstrap = require("bootstrap");
 var p5 = require("p5");
 
+var game = void 0;
+var current = void 0;
+
+function main(p) {
+
+    var game = void 0;
+
+    p.setup = function () {
+        p.createCanvas(640, 480);
+        p.frameRate(60);
+
+        game = new _game.Game(p);
+        current = game;
+    };
+
+    p.draw = function () {
+        current.draw();
+    };
+
+    p.keyPressed = function () {
+        current.keyPressed();
+    };
+}
+
+new p5(main);
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./game":17,"bootstrap":1,"jQuery":14,"p5":15}],17:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 var startX = 150;
 var startY = 150;
 var speed = 2.5;
@@ -47949,13 +47984,9 @@ function simulate() {
     doTrail();
 }
 
-function game(p) {
+var Game = exports.Game = function Game(p) {
 
-    p.setup = function () {
-        p.createCanvas(640, 480);
-        p.frameRate(60);
-        background = p.loadImage("art/backgroundCGA2.png");
-    };
+    background = p.loadImage("art/backgroundCGA2.png");
 
     p.draw = function () {
         tick = p.millis();
@@ -47991,9 +48022,6 @@ function game(p) {
             spaceBarDown = p.millis();
         }
     };
-}
+};
 
-new p5(game);
-
-}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"bootstrap":1,"jQuery":14,"p5":15}]},{},[16]);
+},{}]},{},[16]);
