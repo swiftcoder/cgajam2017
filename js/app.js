@@ -47954,7 +47954,7 @@ function game(p) {
     p.setup = function () {
         p.createCanvas(640, 480);
         p.frameRate(60);
-        background = p.loadImage("art/background-20dithering.png");
+        background = p.loadImage("art/backgroundCGA2.png");
     };
 
     p.draw = function () {
