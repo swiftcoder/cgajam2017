@@ -5,8 +5,10 @@ const bootstrap = require("bootstrap");
 const p5 = require("p5");
 
 const startX = 150;
-const startY = 50;
-const speed = 6.0;
+const startY = 150;
+const speed = 2.5;
+const gravity = 1.0;
+const jumpVelocity = -17;
 
 function Player() {
     this.x = startX;
@@ -35,7 +37,7 @@ function Generator(bpm, beats_per_bar, beats_per_note) {
     this.measure_length = beats_per_bar
     console.log("frames per beat: " + this.frames_per_beat + " measure length: " + this.measure_length);
 
-    this.blockLength = function() {
+    this.beatLength = function() {
         return this.frames_per_beat * speed;
     }
 }
@@ -48,7 +50,7 @@ let trail = [];
 let spaceBarDown = -10000;
 let tick = 0;
 
-let generator = new Generator(120, 3, 4);
+let generator = new Generator(130, 3, 8);
 
 /* Returns true if two blocks collide, false otherwise */
 function collideBlocks(a, b) {
@@ -57,12 +59,12 @@ function collideBlocks(a, b) {
 }
 
 function onGround() {
-    return (tick - player.onGround) < 100;
+    return (tick - player.onGround) < 50;
 }
 
 function jump() {
     if ((tick - spaceBarDown) < 250 && onGround()) {
-        player.vy = -25;
+        player.vy = jumpVelocity;
         spaceBarDown = -10000;
         console.log('player_jumped: ' + tick);
     }
@@ -71,19 +73,20 @@ function jump() {
 function move() {
     player.x += speed;
     if (!onGround() || player.vy < 0) {
-        player.y += 10 + player.vy;
+        player.vy += gravity;
+        player.y += player.vy;
     }
     player.vy *= 0.9;
 }
 
 function collide() {
-    for (var i = 0; i < blocks.length; ++i) {
+    for (let i = 0; i < blocks.length; ++i) {
         let b = blocks[i];
         if (collideBlocks(player, b)) {
             if (!onGround()) {
-                player.vy = 0;
                 console.log('player_landed: ' + tick);
             }
+            player.vy = 0;
             player.y = b.y - player.h;
             player.onGround = tick;
             break;
@@ -109,11 +112,17 @@ function randomIntRange(lo, hi) {
     return lo + Math.floor(Math.random() * (hi - lo + 1));
 }
 
+function randomChoice(a) {
+    return a[Math.floor(Math.random()*a.length)];
+}
+
+let lastW = 0, prevW = 0;
+
 function updateBlocks() {
     let screen = screenArea.offset(player.x - startX, 0);
 
     // remove blocks which are entirely outside the screen
-    for (var i = blocks.length-1; i >= 0; --i) {
+    for (let i = blocks.length-1; i >= 0; --i) {
         let b = blocks[i];
         if (!collideBlocks(screen, b)) {
             blocks.splice(i, 1);
@@ -122,26 +131,46 @@ function updateBlocks() {
 
     // make sure we have at least 10 blocks
     while (blocks.length < 10) {
-        let x = startX - 100;
-        let y = startY + 50;
+        let x = startX - 150;
+        let y = 240;
         if (blocks.length > 0) {
             let b = blocks[blocks.length-1];
             x = b.x + b.w;
             y = b.y;
         }
 
-        let w = randomIntRange(0, 3);
-        if (w < 1 && y > screenArea.y + 150) { // step up
-            x += randomRange(10, 20);
-            y += randomRange(-60, -40);
-        } else if (w < 2 && y < screenArea.y + screenArea.h - 150) { // drop down
-            x += randomRange(90, 130);
-            y += randomRange(40, 60);
-        } else { // flat
-            x += randomRange(80, 100);
+        let w = 0;
+        if (lastW == -1) {
+            w = (prevW != 0) ? 1 : 0;
+        } else if (lastW == 1 && prevW != 0) {
+            w = (prevW != 0) ? -1 : 0;
+        } else if (lastW == 0) {
+            w = randomChoice([-1, 1]);
         }
+        prevW = lastW;
+        lastW = w;
 
-        blocks.push(new Block(x, y, generator.blockLength(), 10));
+        if (w == 1) { // step up
+            for (let i = 0; i < generator.measure_length; ++i) {
+                let gap = generator.beatLength()/4;
+                blocks.push(new Block(x+gap, y, generator.beatLength() - gap, 10));
+                x += generator.beatLength();
+                y -= 50;
+            }
+        } else if (w == -1) { // drop down
+            for (let i = 0; i < generator.measure_length; ++i) {
+                let gap = generator.beatLength()/2;
+                blocks.push(new Block(x+gap, y, generator.beatLength() - gap, 10));
+                x += generator.beatLength();
+                y += 50;
+            }
+        } else if (w == 0) { // flat
+            for (let i = 0; i < generator.measure_length; ++i) {
+                let gap = generator.beatLength()/2;
+                blocks.push(new Block(x+gap, y, generator.beatLength() - gap, 10));
+                x += generator.beatLength();
+            }
+        }
     }
 }
 
@@ -168,33 +197,33 @@ function game(p) {
 
     p.setup = function() {
         p.createCanvas(640, 480);
-        p.frameRate(30);
+        p.frameRate(60);
         background = p.loadImage("art/background-20dithering.png");
     }
 
     p.draw = function() {
         tick = p.millis();
 
-        p.background('magenta');
-        p.image(background, -player.x/2 % (background.width / 2), 0);
-        p.noStroke();
+        p.background('#55ffff');
+        p.image(background, Math.floor(-player.x/2 % (background.width / 2)), 0);
+        p.stroke('#ffffff');
 
         simulate();
 
         // move everything backwards by the amount the player has moved forwards
         p.translate(-player.x + startX, 0);
 
-        p.fill('cyan');
+        p.fill('#ff55ff');
         p.rect(player.x, player.y, 5, 5);
 
-        p.fill('black');
-        for (var i = 0; i < blocks.length; ++i) {
+        p.fill('#000000');
+        for (let i = 0; i < blocks.length; ++i) {
             let b = blocks[i];
             p.rect(b.x, b.y, b.w, b.h);
         }
 
-        p.fill('white');
-        for (var i = 0; i < trail.length; ++i) {
+        p.fill('#aaaaaa');
+        for (let i = 0; i < trail.length; ++i) {
             let b = trail[i];
             p.rect(b.x, b.y, b.w, b.h);
         }
