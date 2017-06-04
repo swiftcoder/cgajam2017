@@ -116,7 +116,8 @@ function randomChoice(a) {
     return a[Math.floor(Math.random()*a.length)];
 }
 
-let lastW = 0, prevW = 0;
+let lastW = 0;
+let prevW = 0;
 
 function updateBlocks() {
     let screen = screenArea.offset(player.x - startX, 0);

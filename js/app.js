@@ -47868,8 +47868,8 @@ function randomChoice(a) {
     return a[Math.floor(Math.random() * a.length)];
 }
 
-var lastW = 0,
-    prevW = 0;
+var lastW = 0;
+var prevW = 0;
 
 function updateBlocks() {
     var screen = screenArea.offset(player.x - startX, 0);
