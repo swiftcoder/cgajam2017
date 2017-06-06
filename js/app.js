@@ -57184,7 +57184,11 @@ function main(p) {
             } else {
                 characterSounds.jump = jumpSounds[1];
                 characterSounds.land = landSounds[0];
-                characterSounds.death = deathSounds[2]; // lol
+                characterSounds.death = deathSounds[1];
+            }
+
+            if (characterSelection === "Drake") {
+                characterSounds.death = deathSounds[2]; // laugh at Drake
             }
         });
         game = new _game.Game(p, characterSounds);
