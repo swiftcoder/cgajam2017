@@ -57517,10 +57517,10 @@ var Menu = exports.Menu = function Menu(p, go) {
         menuItems[2].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 2, blockWidth, blockHeight, i + 6, p));
     }
 
+    var img = p.loadImage("../art/ChooseCharacterCGA2.png");
+
     this.draw = function () {
-        p.loadImage("../images/choosecharacter.png", function (img) {
-            p.image(img, 0, 0);
-        });
+        p.image(img, 0, 0);
         var _iteratorNormalCompletion = true;
         var _didIteratorError = false;
         var _iteratorError = undefined;

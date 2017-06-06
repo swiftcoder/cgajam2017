@@ -46,10 +46,10 @@ export const Menu = function(p, go) {
         );
     }
 
+    let img = p.loadImage("../art/ChooseCharacterCGA2.png");
+
     this.draw = function() {
-        p.loadImage("../images/choosecharacter.png", img => {
-            p.image(img, 0, 0);
-        });
+        p.image(img, 0, 0);
         for (let row of menuItems) {
             for (let item of row) {
                 item.display();
