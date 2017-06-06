@@ -59,7 +59,7 @@ export const Menu = function(p, go) {
 
     this.keyPressed = function() {
         if (p.keyCode === 32) {
-            go();
+            go(select - 1);
             return;
         }
 
@@ -72,6 +72,7 @@ export const Menu = function(p, go) {
                 }
             }
         }
+
         if (select < 8) {
             select += 1;
         } else {

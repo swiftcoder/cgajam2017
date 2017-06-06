@@ -57102,6 +57102,15 @@ var bootstrap = require("bootstrap");
 var p5 = require("p5");
 var sound = require("p5/lib/addons/p5.sound");
 
+var JUMP_SOUNDS = ["../art/JUMP_01.wav", "../art/JUMP_02.wav"];
+
+var LAND_SOUNDS = ["../art/LAND_01.wav", "../art/LAND_02.wav"];
+
+var DEATH_SOUNDS = ["../art/JacksonDeath.wav", "../art/DEATH_01.wav", "../art/DEATH_02.wav"];
+
+var CHARACTERS = ["JEM", "MJ", "ALF", "Optimus", "Drake", "Madonna", "Ashton", "??", // no idea who this gal is
+"Borat"];
+
 var intro = void 0;
 var menu = void 0;
 var game = void 0;
@@ -57109,13 +57118,38 @@ var current = void 0;
 var noise = void 0;
 var flt = void 0;
 
+var jumpSounds = [];
+var landSounds = [];
+var deathSounds = [];
+
+var characterSounds = {};
+var characterSelection = "";
+
 function main(p) {
 
     var game = void 0;
-    var s = void 0;
+    var music = void 0;
 
     p.preload = function () {
-        s = p.loadSound('../art/funner_runner.ogg');
+        music = p.loadSound('../art/funner_runner.ogg');
+
+        // load jumps
+        JUMP_SOUNDS.forEach(function (path) {
+            var sound = p.loadSound(path);
+            jumpSounds.push(sound);
+        });
+
+        // load lands
+        LAND_SOUNDS.forEach(function (path) {
+            var sound = p.loadSound(path);
+            landSounds.push(sound);
+        });
+
+        // load deaths
+        DEATH_SOUNDS.forEach(function (path) {
+            var sound = p.loadSound(path);
+            deathSounds.push(sound);
+        });
     };
 
     p.setup = function () {
@@ -57128,10 +57162,10 @@ function main(p) {
         // give the flt a narrow band (lower res = wider bandpass)
         flt.res(1000);
 
-        s.rate(1);
-        s.loop();
+        music.rate(1);
+        music.loop();
 
-        console.log(s);
+        console.log(music);
 
         p.createCanvas(640, 480);
         p.frameRate(60);
@@ -57139,10 +57173,21 @@ function main(p) {
         intro = new _intro.Intro(p, function () {
             current = menu;
         });
-        menu = new _menu.Menu(p, function () {
+        menu = new _menu.Menu(p, function (characterSelectionIndex) {
             current = game;
+            characterSelection = CHARACTERS[characterSelectionIndex];
+            console.log('character: ', characterSelection, characterSelectionIndex);
+            if (characterSelection === "MJ") {
+                characterSounds.jump = jumpSounds[0];
+                characterSounds.land = jumpSounds[1];
+                characterSounds.death = deathSounds[0]; // lol
+            } else {
+                characterSounds.jump = jumpSounds[1];
+                characterSounds.land = landSounds[0];
+                characterSounds.death = deathSounds[2]; // lol
+            }
         });
-        game = new _game.Game(p);
+        game = new _game.Game(p, characterSounds);
 
         current = intro;
     };
@@ -57159,7 +57204,7 @@ function main(p) {
 new p5(main);
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./game":18,"bootstrap":1,"jQuery":14,"p5":16,"p5/lib/addons/p5.sound":15}],18:[function(require,module,exports){
+},{"./game":18,"./intro":19,"./menu":20,"bootstrap":1,"jQuery":14,"p5":16,"p5/lib/addons/p5.sound":15}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -57222,11 +57267,14 @@ function onGround() {
     return tick - player.onGround < 50;
 }
 
-function jump() {
+function jump(sound) {
     if (tick - spaceBarDown < 250 && onGround()) {
         player.vy = jumpVelocity;
         spaceBarDown = -10000;
         console.log('player_jumped: ' + tick);
+        if (sound) {
+            sound.play();
+        }
     }
 }
 
@@ -57239,12 +57287,15 @@ function move() {
     player.vy *= 0.9;
 }
 
-function collide() {
+function collide(sound) {
     for (var i = 0; i < blocks.length; ++i) {
         var b = blocks[i];
         if (collideBlocks(player, b)) {
             if (!onGround()) {
                 console.log('player_landed: ' + tick);
+                if (sound) {
+                    sound.play();
+                }
             }
             player.vy = 0;
             player.y = b.y - player.h;
@@ -57254,13 +57305,16 @@ function collide() {
     }
 }
 
-function resetOnDeath() {
+function resetOnDeath(sound) {
     if (player.y > screenArea.y + screenArea.h) {
         player.x = startX;
         player.y = startY;
         blocks = [];
         trail = [];
         console.log('player_dead: ' + tick);
+        if (sound) {
+            sound.play();
+        }
     }
 }
 
@@ -57347,17 +57401,17 @@ function doTrail() {
     }
 }
 
-function simulate() {
-    jump();
+function simulate(Sounds) {
+    jump(Sounds.jump);
     move();
-    collide();
-    resetOnDeath();
+    collide(Sounds.land);
+    resetOnDeath(Sounds.death);
 
     updateBlocks();
     doTrail();
 }
 
-var Game = exports.Game = function Game(p) {
+var Game = exports.Game = function Game(p, Sounds) {
     // p.loadSound('../art/funner_runner.ogg')
     // p.start()
 
@@ -57373,7 +57427,7 @@ var Game = exports.Game = function Game(p) {
         p.stroke('#ffffff');
         p.strokeWeight(1);
 
-        simulate();
+        simulate(Sounds);
 
         // move everything backwards by the amount the player has moved forwards
         p.translate(-player.x + startX, 0);
@@ -57401,5 +57455,218 @@ var Game = exports.Game = function Game(p) {
         }
     };
 };
+
+},{}],19:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var Intro = exports.Intro = function Intro(p, go) {
+
+    var frame1 = p.loadImage("art/mainscreenCGA2-1.png");
+    var frame2 = p.loadImage("art/mainscreenCGA2-2.png");
+
+    var frame = frame1;
+
+    var count = 0;
+
+    this.draw = function () {
+        p.image(frame, 0, 0);
+
+        if (++count > 120) {
+            count = 0;
+            frame = frame === frame1 ? frame2 : frame1;
+        }
+    };
+
+    this.keyPressed = function () {
+        go();
+    };
+};
+
+},{}],20:[function(require,module,exports){
+(function (global){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Menu = undefined;
+
+var _menuItem = require("./menuItem");
+
+global.jQuery = require("jQuery");
+var bootstrap = require("bootstrap");
+var p5 = require("p5");
+
+
+var height = 480;
+var width = 640;
+var selectText = 96;
+var blockWidth = width / 3;
+var blockHeight = height / 3 - selectText / 3;
+var select = 0;
+
+var Menu = exports.Menu = function Menu(p, go) {
+    var menuItems = [[], [], []];
+
+    for (var i = 0; i < 3; i++) {
+        menuItems[0].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 0, blockWidth, blockHeight, i, p));
+        menuItems[1].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 1, blockWidth, blockHeight, i + 3, p));
+        menuItems[2].push(new _menuItem.MenuItem(blockWidth * i, blockHeight * 2, blockWidth, blockHeight, i + 6, p));
+    }
+
+    this.draw = function () {
+        p.loadImage("../images/choosecharacter.png", function (img) {
+            p.image(img, 0, 0);
+        });
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = menuItems[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var row = _step.value;
+                var _iteratorNormalCompletion2 = true;
+                var _didIteratorError2 = false;
+                var _iteratorError2 = undefined;
+
+                try {
+                    for (var _iterator2 = row[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                        var item = _step2.value;
+
+                        item.display();
+                    }
+                } catch (err) {
+                    _didIteratorError2 = true;
+                    _iteratorError2 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                            _iterator2.return();
+                        }
+                    } finally {
+                        if (_didIteratorError2) {
+                            throw _iteratorError2;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+    };
+
+    this.keyPressed = function () {
+        if (p.keyCode === 32) {
+            go(select - 1);
+            return;
+        }
+
+        var _iteratorNormalCompletion3 = true;
+        var _didIteratorError3 = false;
+        var _iteratorError3 = undefined;
+
+        try {
+            for (var _iterator3 = menuItems[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                var row = _step3.value;
+                var _iteratorNormalCompletion4 = true;
+                var _didIteratorError4 = false;
+                var _iteratorError4 = undefined;
+
+                try {
+                    for (var _iterator4 = row[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+                        var item = _step4.value;
+
+                        if (item.id === select) {
+                            item.highlight();
+                        } else {
+                            item.unHighlight();
+                        }
+                    }
+                } catch (err) {
+                    _didIteratorError4 = true;
+                    _iteratorError4 = err;
+                } finally {
+                    try {
+                        if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                            _iterator4.return();
+                        }
+                    } finally {
+                        if (_didIteratorError4) {
+                            throw _iteratorError4;
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            _didIteratorError3 = true;
+            _iteratorError3 = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                    _iterator3.return();
+                }
+            } finally {
+                if (_didIteratorError3) {
+                    throw _iteratorError3;
+                }
+            }
+        }
+
+        if (select < 8) {
+            select += 1;
+        } else {
+            select = 0;
+        }
+    };
+};
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./menuItem":21,"bootstrap":1,"jQuery":14,"p5":16}],21:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.MenuItem = MenuItem;
+function MenuItem(x, y, width, height, id, p) {
+    var _this = this;
+
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    this.id = id;
+
+    this.stroke = "#AA00AA";
+
+    this.display = function () {
+        p.fill("rgba(0, 0, 0 ,0.0)");
+        p.stroke(_this.stroke);
+        p.strokeWeight(5);
+        p.rect(_this.x, _this.y, _this.width, _this.height);
+    };
+
+    this.highlight = function () {
+        _this.stroke = "white";
+    };
+
+    this.unHighlight = function () {
+        _this.stroke = "#AA00AA";
+    };
+}
 
 },{}]},{},[17]);
