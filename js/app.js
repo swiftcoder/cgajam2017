@@ -57176,7 +57176,7 @@ function main(p) {
         menu = new _menu.Menu(p, function (characterSelectionIndex) {
             current = game;
             characterSelection = CHARACTERS[characterSelectionIndex];
-            console.log('character: ', characterSelection, characterSelectionIndex);
+
             if (characterSelection === "MJ") {
                 characterSounds.jump = jumpSounds[0];
                 characterSounds.land = jumpSounds[1];
