@@ -57102,6 +57102,15 @@ var bootstrap = require("bootstrap");
 var p5 = require("p5");
 var sound = require("p5/lib/addons/p5.sound");
 
+var JUMP_SOUNDS = ["../art/JUMP_01.wav", "../art/JUMP_02.wav"];
+
+var LAND_SOUNDS = ["../art/LAND_01.wav", "../art/LAND_02.wav"];
+
+var DEATH_SOUNDS = ["../art/JacksonDeath.wav", "../art/DEATH_01.wav", "../art/DEATH_02.wav"];
+
+var CHARACTERS = ["JEM", "MJ", "ALF", "Optimus", "Drake", "Madonna", "Ashton", "??", // no idea who this gal is
+"Borat"];
+
 var intro = void 0;
 var menu = void 0;
 var game = void 0;
@@ -57109,13 +57118,38 @@ var current = void 0;
 var noise = void 0;
 var flt = void 0;
 
+var jumpSounds = [];
+var landSounds = [];
+var deathSounds = [];
+
+var characterSounds = {};
+var characterSelection = "";
+
 function main(p) {
 
     var game = void 0;
-    var s = void 0;
+    var music = void 0;
 
     p.preload = function () {
-        s = p.loadSound('../art/funner_runner.ogg');
+        music = p.loadSound('../art/funner_runner.ogg');
+
+        // load jumps
+        JUMP_SOUNDS.forEach(function (path) {
+            var sound = p.loadSound(path);
+            jumpSounds.push(sound);
+        });
+
+        // load lands
+        LAND_SOUNDS.forEach(function (path) {
+            var sound = p.loadSound(path);
+            landSounds.push(sound);
+        });
+
+        // load deaths
+        DEATH_SOUNDS.forEach(function (path) {
+            var sound = p.loadSound(path);
+            deathSounds.push(sound);
+        });
     };
 
     p.setup = function () {
@@ -57128,10 +57162,10 @@ function main(p) {
         // give the flt a narrow band (lower res = wider bandpass)
         flt.res(1000);
 
-        s.rate(1);
-        s.loop();
+        music.rate(1);
+        music.loop();
 
-        console.log(s);
+        console.log(music);
 
         p.createCanvas(640, 480);
         p.frameRate(60);
@@ -57139,10 +57173,25 @@ function main(p) {
         intro = new _intro.Intro(p, function () {
             current = menu;
         });
-        menu = new _menu.Menu(p, function () {
+        menu = new _menu.Menu(p, function (characterSelectionIndex) {
             current = game;
+            characterSelection = CHARACTERS[characterSelectionIndex];
+
+            if (characterSelection === "MJ") {
+                characterSounds.jump = jumpSounds[0];
+                characterSounds.land = jumpSounds[1];
+                characterSounds.death = deathSounds[0]; // lol
+            } else {
+                characterSounds.jump = jumpSounds[1];
+                characterSounds.land = landSounds[0];
+                characterSounds.death = deathSounds[1];
+            }
+
+            if (characterSelection === "Drake") {
+                characterSounds.death = deathSounds[2]; // laugh at Drake
+            }
         });
-        game = new _game.Game(p);
+        game = new _game.Game(p, characterSounds);
 
         current = intro;
     };
@@ -57222,11 +57271,14 @@ function onGround() {
     return tick - player.onGround < 50;
 }
 
-function jump() {
+function jump(sound) {
     if (tick - spaceBarDown < 250 && onGround()) {
         player.vy = jumpVelocity;
         spaceBarDown = -10000;
         console.log('player_jumped: ' + tick);
+        if (sound) {
+            sound.play();
+        }
     }
 }
 
@@ -57239,12 +57291,15 @@ function move() {
     player.vy *= 0.9;
 }
 
-function collide() {
+function collide(sound) {
     for (var i = 0; i < blocks.length; ++i) {
         var b = blocks[i];
         if (collideBlocks(player, b)) {
             if (!onGround()) {
                 console.log('player_landed: ' + tick);
+                if (sound) {
+                    sound.play();
+                }
             }
             player.vy = 0;
             player.y = b.y - player.h;
@@ -57254,13 +57309,16 @@ function collide() {
     }
 }
 
-function resetOnDeath() {
+function resetOnDeath(sound) {
     if (player.y > screenArea.y + screenArea.h) {
         player.x = startX;
         player.y = startY;
         blocks = [];
         trail = [];
         console.log('player_dead: ' + tick);
+        if (sound) {
+            sound.play();
+        }
     }
 }
 
@@ -57347,17 +57405,17 @@ function doTrail() {
     }
 }
 
-function simulate() {
-    jump();
+function simulate(Sounds) {
+    jump(Sounds.jump);
     move();
-    collide();
-    resetOnDeath();
+    collide(Sounds.land);
+    resetOnDeath(Sounds.death);
 
     updateBlocks();
     doTrail();
 }
 
-var Game = exports.Game = function Game(p) {
+var Game = exports.Game = function Game(p, Sounds) {
     // p.loadSound('../art/funner_runner.ogg')
     // p.start()
 
@@ -57373,7 +57431,7 @@ var Game = exports.Game = function Game(p) {
         p.stroke('#ffffff');
         p.strokeWeight(1);
 
-        simulate();
+        simulate(Sounds);
 
         // move everything backwards by the amount the player has moved forwards
         p.translate(-player.x + startX, 0);
@@ -57517,7 +57575,7 @@ var Menu = exports.Menu = function Menu(p, go) {
 
     this.keyPressed = function () {
         if (p.keyCode === 32) {
-            go();
+            go(select - 1);
             return;
         }
 

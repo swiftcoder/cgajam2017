@@ -22,18 +22,18 @@ function Block(x, y, w, h) {
     this.h = h;
 
     /* move this box by the specified distance */
-    this.offset = function(x, y) {
-        return new Block(this.x+x, this.y+y, this.w, this.h);
+    this.offset = function (x, y) {
+        return new Block(this.x + x, this.y + y, this.w, this.h);
     }
 }
 
 function Generator(bpm, beats_per_bar, beats_per_note) {
     let beats_per_minute = bpm * beats_per_bar / beats_per_note;
-    this.frames_per_beat = 30*60 / beats_per_minute;
+    this.frames_per_beat = 30 * 60 / beats_per_minute;
     this.measure_length = beats_per_bar
     console.log("frames per beat: " + this.frames_per_beat + " measure length: " + this.measure_length);
 
-    this.beatLength = function() {
+    this.beatLength = function () {
         return this.frames_per_beat * speed;
     }
 }
@@ -50,19 +50,22 @@ let generator = new Generator(130, 3, 8);
 
 /* Returns true if two blocks collide, false otherwise */
 function collideBlocks(a, b) {
-    return (a.x+a.w >= b.x && a.x <= b.x+b.w &&
-            a.y+a.h >= b.y && a.y <= b.y+b.h);
+    return (a.x + a.w >= b.x && a.x <= b.x + b.w &&
+        a.y + a.h >= b.y && a.y <= b.y + b.h);
 }
 
 function onGround() {
     return (tick - player.onGround) < 50;
 }
 
-function jump() {
+function jump(sound) {
     if ((tick - spaceBarDown) < 250 && onGround()) {
         player.vy = jumpVelocity;
         spaceBarDown = -10000;
         console.log('player_jumped: ' + tick);
+        if (sound) {
+            sound.play();
+        }
     }
 }
 
@@ -75,12 +78,15 @@ function move() {
     player.vy *= 0.9;
 }
 
-function collide() {
+function collide(sound) {
     for (let i = 0; i < blocks.length; ++i) {
         let b = blocks[i];
         if (collideBlocks(player, b)) {
             if (!onGround()) {
                 console.log('player_landed: ' + tick);
+                if (sound) {
+                    sound.play();
+                }
             }
             player.vy = 0;
             player.y = b.y - player.h;
@@ -90,18 +96,21 @@ function collide() {
     }
 }
 
-function resetOnDeath() {
+function resetOnDeath(sound) {
     if (player.y > screenArea.y + screenArea.h) {
         player.x = startX;
         player.y = startY;
         blocks = [];
         trail = [];
         console.log('player_dead: ' + tick);
+        if (sound) {
+            sound.play();
+        }
     }
 }
 
 function randomRange(lo, hi) {
-    return lo + Math.random()*(hi - lo);
+    return lo + Math.random() * (hi - lo);
 }
 
 function randomIntRange(lo, hi) {
@@ -109,7 +118,7 @@ function randomIntRange(lo, hi) {
 }
 
 function randomChoice(a) {
-    return a[Math.floor(Math.random()*a.length)];
+    return a[Math.floor(Math.random() * a.length)];
 }
 
 let lastW = 0;
@@ -119,7 +128,7 @@ function updateBlocks() {
     let screen = screenArea.offset(player.x - startX, 0);
 
     // remove blocks which are entirely outside the screen
-    for (let i = blocks.length-1; i >= 0; --i) {
+    for (let i = blocks.length - 1; i >= 0; --i) {
         let b = blocks[i];
         if (!collideBlocks(screen, b)) {
             blocks.splice(i, 1);
@@ -131,7 +140,7 @@ function updateBlocks() {
         let x = startX - 150;
         let y = 240;
         if (blocks.length > 0) {
-            let b = blocks[blocks.length-1];
+            let b = blocks[blocks.length - 1];
             x = b.x + b.w;
             y = b.y;
         }
@@ -149,22 +158,22 @@ function updateBlocks() {
 
         if (w == 1) { // step up
             for (let i = 0; i < generator.measure_length; ++i) {
-                let gap = generator.beatLength()/4;
-                blocks.push(new Block(x+gap, y, generator.beatLength() - gap, 10));
+                let gap = generator.beatLength() / 4;
+                blocks.push(new Block(x + gap, y, generator.beatLength() - gap, 10));
                 x += generator.beatLength();
                 y -= 50;
             }
         } else if (w == -1) { // drop down
             for (let i = 0; i < generator.measure_length; ++i) {
-                let gap = generator.beatLength()/2;
-                blocks.push(new Block(x+gap, y, generator.beatLength() - gap, 10));
+                let gap = generator.beatLength() / 2;
+                blocks.push(new Block(x + gap, y, generator.beatLength() - gap, 10));
                 x += generator.beatLength();
                 y += 50;
             }
         } else if (w == 0) { // flat
             for (let i = 0; i < generator.measure_length; ++i) {
-                let gap = generator.beatLength()/2;
-                blocks.push(new Block(x+gap, y, generator.beatLength() - gap, 10));
+                let gap = generator.beatLength() / 2;
+                blocks.push(new Block(x + gap, y, generator.beatLength() - gap, 10));
                 x += generator.beatLength();
             }
         }
@@ -180,34 +189,33 @@ function doTrail() {
     }
 }
 
-function simulate() {
-    jump();
+function simulate(Sounds) {
+    jump(Sounds.jump);
     move();
-    collide();
-    resetOnDeath();
+    collide(Sounds.land);
+    resetOnDeath(Sounds.death);
 
     updateBlocks();
     doTrail();
 }
 
-export const Game = function(p) {
+export const Game = function (p, Sounds) {
     // p.loadSound('../art/funner_runner.ogg')
     // p.start()
 
     console.log(p)
 
-
     background = p.loadImage("art/backgroundCGA2.png");
 
-    this.draw = function() {
+    this.draw = function () {
         tick = p.millis();
 
         p.background('#55ffff');
-        p.image(background, Math.floor(-player.x/2 % (background.width / 2)), 0);
+        p.image(background, Math.floor(-player.x / 2 % (background.width / 2)), 0);
         p.stroke('#ffffff');
         p.strokeWeight(1);
 
-        simulate();
+        simulate(Sounds);
 
         // move everything backwards by the amount the player has moved forwards
         p.translate(-player.x + startX, 0);
@@ -228,7 +236,7 @@ export const Game = function(p) {
         }
     };
 
-    this.keyPressed = function() {
+    this.keyPressed = function () {
         if (p.keyCode == 32) { // spacebar
             spaceBarDown = p.millis();
         }
